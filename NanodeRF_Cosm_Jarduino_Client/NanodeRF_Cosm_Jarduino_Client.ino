@@ -20,7 +20,17 @@
  * Information on the RF12 library - http://jeelabs.net/projects/11/wiki/RF12
  *
  * Original URL: https://github.com/ichilton/nanode-code/blob/master/test_rfm12b/test_tx/test_tx.pde
- ***************************************************************************/
+ *
+ * Jarduino Client expanded to include:
+ * -DHT22 Sensor
+ * -soilMoisture
+ * -sunlight measured via an LDR
+ * -servo control capabilities
+ * Upload to Cosm is handled by the Nanode Gateway code with hardcoded feed/apikey for each node
+ ***********************************************************************************************/
+
+
+// RF12b Requirements
 #include <JeeLib.h>
 
 #define freq RF12_433MHZ     // frequency
@@ -32,23 +42,36 @@ ISR(WDT_vect) {
 }
 
 // Send a single unsigned long
-
 typedef struct 
 { 
   int jardinera; 
   float temperature;
-  int humidity; 
+  float humidity; 
   int soilMoisture; 
   int sunlight;
   int angle;
-} PayloadJrdn;
+} 
+PayloadJrdn;
 
 PayloadJrdn jrdnData;
+
+//DHT22 Requirements
+// DHT Circuit
+// Connect pin 1 (on the left) of the sensor to +5V
+// Connect pin 2 of the sensor to whatever your DHTPIN is
+// Connect pin 4 (on the right) of the sensor to GROUND
+// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
+
+#include "DHT.h"             // DHT library
+#define DHTPIN 7             // what pin we're connected to
+#define DHTTYPE DHT22        // DHT 22  Model (AM2302)
+DHT dht(DHTPIN, DHTTYPE);
+
 
 //Dummy values
 int jardi;
 float temp;
-int hum; 
+float hum; 
 int soil; 
 int sun;
 int ang;
@@ -62,6 +85,10 @@ void setup()
   // LED on Pin Digital 6:
   pinMode(5, OUTPUT);
 
+  // DHT Initialization
+  Serial.println("DHT22 sending!");
+  dht.begin();
+
   jardi=2;
   temp = 37.2;
   hum = 20; 
@@ -72,7 +99,7 @@ void setup()
 
   // Initialize RFM12B as an 868Mhz module and Node 11 + Group 1:
   // Node number = Jardinera number + 10; 1 is reserved for the NanodeRF Gateway  
-  
+
   rf12_initialize(node_id, freq, group);
   Serial.println("Radio inicializada");
   Serial.print("Nodo ");
@@ -112,9 +139,23 @@ void loop()
   Serial.flush();
   delay(5);
 
+  // Jardinera_ID
   jrdnData.jardinera=jardi;
-  jrdnData.temperature=temp;
-  jrdnData.humidity=hum;
+  
+  //DHT22 Code
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();     
+  
+  // check if returns are valid, if they are NaN (not a number) then something went wrong!
+  if (isnan(temp) || isnan(hum)) {             
+    Serial.println("Failed to read from DHT");
+  } 
+  else {
+    jrdnData.temperature=temp; //Get temp from DHT22
+    jrdnData.humidity=hum;        
+  }
+  // End of DHT22 Code
+  
   jrdnData.soilMoisture=soil;
   jrdnData.sunlight=sun;
   jrdnData.angle=ang;
@@ -129,4 +170,5 @@ void loop()
 
   Serial.println("Sent payload");
 }
+
 

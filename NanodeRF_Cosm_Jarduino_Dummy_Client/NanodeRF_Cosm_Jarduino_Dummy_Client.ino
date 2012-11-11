@@ -37,7 +37,7 @@ typedef struct
 { 
   int jardinera; 
   float temperature;
-  int humidity; 
+  float humidity; 
   int soilMoisture; 
   int sunlight;
   int angle;
@@ -48,7 +48,7 @@ PayloadJrdn jrdnData;
 //Dummy values
 int jardi;
 float temp;
-int hum; 
+float hum; 
 int soil; 
 int sun;
 int ang;
@@ -66,7 +66,7 @@ void setup()
   // They will be substituted by real sensor measurements
   jardi=2;
   temp = 37.2;
-  hum = 20; 
+  hum = 20.0; 
   soil = 40; 
   sun = 50;
   ang = 0;

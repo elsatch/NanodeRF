@@ -56,7 +56,7 @@
 typedef struct 
 { int jardinera; 
   float temperature;
-  int humidity; 
+  float humidity; 
   int soilMoisture; 
   int sunlight;
   int angle;
