@@ -55,7 +55,7 @@ PayloadJrdn;
 
 PayloadJrdn jrdnData;
 
-//DHT22 Requirements
+// DHT22 Requirements
 // DHT Circuit
 // Connect pin 1 (on the left) of the sensor to +5V
 // Connect pin 2 of the sensor to whatever your DHTPIN is
@@ -67,6 +67,18 @@ PayloadJrdn jrdnData;
 #define DHTTYPE DHT22        // DHT 22  Model (AM2302)
 DHT dht(DHTPIN, DHTTYPE);
 
+// Soil Moisture Sensor - DIY version with 2 large nails
+// Two analog pins (A2, A3) are used as digitals to create AC switching the current direction every two seconds
+// A1 is used to measure soil resistance to current. The more humid the less resistance
+// We tried with Digital 3 & 4, but Ethernet controller doesn't initialize properly if selected, so we swtiched to analog pins
+//Pin Numbers
+int moisture_input=1; 
+int divider_top=A3; 
+int divider_bottom=A2;
+
+//Aux
+int moisture_result=0; // Resultado de la lectura del A0
+int moisture_percentage=0; // Humedad en porcentaje respecto a los maximos del sensor
 
 //Dummy values
 int jardi;
@@ -88,11 +100,17 @@ void setup()
   // DHT Initialization
   Serial.println("DHT22 sending!");
   dht.begin();
-
+  
+  // Soil pins
+  pinMode(divider_top,OUTPUT);
+  pinMode(divider_bottom,OUTPUT);
+  
+  //Select here which garden are we monitoring (1-8)
   jardi=2;
-  temp = 37.2;
-  hum = 20; 
-  soil = 40; 
+  
+//  temp = 37.2;
+//  hum = 20; 
+//  soil = 40; 
   sun = 50;
   ang = 0;
   node_id=jardi+10;
@@ -152,11 +170,19 @@ void loop()
   } 
   else {
     jrdnData.temperature=temp; //Get temp from DHT22
-    jrdnData.humidity=hum;        
+    jrdnData.humidity=hum;
+    Serial.println("Read from DHT");    
   }
   // End of DHT22 Code
   
-  jrdnData.soilMoisture=soil;
+  // Soil moisture measurement code
+ 
+  moisture_result=ReadSoilMoisture();
+  moisture_percentage=map(moisture_result,1024,0,0,100);
+  
+  jrdnData.soilMoisture=moisture_percentage;
+  // End of Soil moisture measurement code 
+  
   jrdnData.sunlight=sun;
   jrdnData.angle=ang;
 
@@ -171,4 +197,26 @@ void loop()
   Serial.println("Sent payload");
 }
 
+int ReadSoilMoisture(){
+  int reading;
+  // drive a current through the divider in one direction
+  digitalWrite(divider_top,HIGH);
+  digitalWrite(divider_bottom,LOW);
+
+  // wait a moment for capacitance effects to settle
+  delay(1000);
+
+  // take a reading
+  reading=analogRead(moisture_input);
+  // reverse the current
+  digitalWrite(divider_top,LOW);
+  digitalWrite(divider_bottom,HIGH);
+
+  // give as much time in 'revers'e as in 'forward'
+  delay(1000);
+
+  // stop the current
+  digitalWrite(divider_bottom,LOW);
+  return reading;
+}
 
