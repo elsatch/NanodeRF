@@ -72,13 +72,15 @@ DHT dht(DHTPIN, DHTTYPE);
 // A1 is used to measure soil resistance to current. The more humid the less resistance
 // We tried with Digital 3 & 4, but Ethernet controller doesn't initialize properly if selected, so we swtiched to analog pins
 //Pin Numbers
-int moisture_input=1; 
-int divider_top=A3; 
-int divider_bottom=A2;
+int moisture_input=1;
+int divider_top=A2; 
+int divider_bottom=A3;
 
 //Aux
 int moisture_result=0; // Resultado de la lectura del A0
 int moisture_percentage=0; // Humedad en porcentaje respecto a los maximos del sensor
+// End of Soil Moisture Sensor 
+// TODO: Review why printing right behind pinMode(divider_bottom, LOW) prints crap on serial port
 
 //Dummy values
 int jardi;
@@ -179,7 +181,6 @@ void loop()
  
   moisture_result=ReadSoilMoisture();
   moisture_percentage=map(moisture_result,1024,0,0,100);
-  
   jrdnData.soilMoisture=moisture_percentage;
   // End of Soil moisture measurement code 
   
