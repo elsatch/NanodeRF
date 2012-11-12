@@ -28,8 +28,6 @@
  * -servo control capabilities
  * Upload to Cosm is handled by the Nanode Gateway code with hardcoded feed/apikey for each node
  ***********************************************************************************************/
-
-
 // RF12b Requirements
 #include <JeeLib.h>
 
@@ -82,6 +80,15 @@ int moisture_percentage=0; // Humedad en porcentaje respecto a los maximos del s
 // End of Soil Moisture Sensor 
 // TODO: Review why printing right behind pinMode(divider_bottom, LOW) prints crap on serial port
 
+// LDR Code
+int ldrPin = A0;
+// End of LDR Code
+
+// Servo Code
+#include <Servo.h>
+Servo myservo;
+// End of Servo Code
+
 //Dummy values
 int jardi;
 float temp;
@@ -110,10 +117,11 @@ void setup()
   //Select here which garden are we monitoring (1-8)
   jardi=2;
   
-//  temp = 37.2;
-//  hum = 20; 
-//  soil = 40; 
-  sun = 50;
+  //  temp = 37.2;
+  //  hum = 20; 
+  //  soil = 40; 
+  //  sun = 50;
+  myservo.attach(9);    
   ang = 0;
   node_id=jardi+10;
 
@@ -184,9 +192,26 @@ void loop()
   jrdnData.soilMoisture=moisture_percentage;
   // End of Soil moisture measurement code 
   
+  //LDR Code
+  sun=analogRead(ldrPin);
   jrdnData.sunlight=sun;
+  //End of LDR Code
+  
+  //Servo Code
+  //Opt 1
+  ang=map(sun, 0, 1023, 0, 179); // Check for sunlight and turn a given angle
+  delay(15);                     // Wait for the servo to move
+  /* Opt 2 - Si hacen mas de 35 grados y mucho sol, entonces saco el toldo
+  if (temp > 35.0 && sun>750) {
+    ang = 150;
+  } else {
+    ang = 0;
+  }
+    */
   jrdnData.angle=ang;
-
+  //End of Servo Code
+  
+  //
   // Wait until we can send:
   while(!rf12_canSend())
     rf12_recvDone();
