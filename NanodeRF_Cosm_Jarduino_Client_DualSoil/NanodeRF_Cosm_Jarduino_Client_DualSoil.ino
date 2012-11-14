@@ -41,6 +41,7 @@ ISR(WDT_vect) {
 
 // Send a single unsigned long
 typedef struct {
+  int jarduino;
   int jardinera1;
   int jardinera2; 
   float temperature;
@@ -93,8 +94,9 @@ int ldrPin = A0;
 // End of LDR Code
 
 //Dummy values
-int jardi1; //Jardinera 1 ID
-int jardi2; //Jardinera 2 ID
+int jrdn;  //Jarduino ID
+int jardi1; //Jardinera 1 connected to Jarduino ID
+int jardi2; //Jardinera 2 connected to Jarduino ID
 float temp;
 float hum; 
 int soil1;

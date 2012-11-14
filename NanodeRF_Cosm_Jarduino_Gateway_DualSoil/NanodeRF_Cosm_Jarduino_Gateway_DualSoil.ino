@@ -6,10 +6,14 @@
 \________(____  /__|  \____ |____/|__|___|  /\____/ 
               \/           \/             \/        
  */
+
 //--------------------------------------------------------------------------------------
 // Relay's data recieved by Jarduino Client up to COSM
 // Decodes reply from server to set software real time clock
 // Looks for 'ok' reply from http request to verify data reached COSM
+
+// Jarduino: A Nanode RF plus a custom shield, called Jarduino because it monitors gardens. Each unit monitors 2 areas for soil moisture (jardinera)
+// All the other parameters are common for both areas. There are 6 sensor units deployed plus a gateway at the moment. (Nov. 2012)
 
 // Based on the incredible work of Trystan Lea and Glyn Hudson for OpenEnergyMonitor.org project
 // Modified for COSM by Roger James
@@ -41,19 +45,33 @@
 //#define FEED1  "/v2/feeds/PutYourFeedIDHere.csv?_method=put"
 //#define APIKEY1 "X-ApiKey:-------------You Api Key Here------------" 
 
-
 #define FEED1  "/v2/feeds/80020.csv?_method=put"
 #define APIKEY1 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
 
 #define FEED2  "/v2/feeds/80021.csv?_method=put"
-#define APIKEY2 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
+#define APIKEY2 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g"
+
+/* To be filled with real data
+#define FEED3  "/v2/feeds/80020.csv?_method=put"
+#define APIKEY3 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
+
+#define FEED4  "/v2/feeds/80021.csv?_method=put"
+#define APIKEY4 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
+
+#define FEED5  "/v2/feeds/80020.csv?_method=put"
+#define APIKEY5 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
+
+#define FEED6  "/v2/feeds/80021.csv?_method=put"
+#define APIKEY6 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
+*/
 
 //---------------------------------------------------
 // Data structures for transfering data between units
 //---------------------------------------------------
 
 typedef struct 
-{ int jardinera1; 
+{ int jarduino;   
+  int jardinera1; 
   int jardinera2;
   float temperature;
   float humidity; 
@@ -212,7 +230,9 @@ void loop () {
 
       jrdnData = *(PayloadJrdn*) rf12_data;                          // get first garden sensor statio data
       Serial.println();                                              // print Jarduino Node 1 data to serial          
-      Serial.print("Jardineras monitored: ");
+      Serial.print("Jarduino Number");
+      Serial.println(jrdnData.jarduino);
+      Serial.print("Monitors jardinera numbers: ");
       Serial.print(jrdnData.jardinera1); 
       Serial.print(" and "); 
       Serial.print(jrdnData.jardinera2); 
@@ -225,19 +245,23 @@ void loop () {
       // CSV data datastrem_id,value\r\n one feed per line
 
       str.reset();                                                   // Reset csv string      
-      str.println("rf_fail,0");                                      // RF recieved so no failure
-      str.print("jardinera,");          
-      str.println(jrdnData.jardinera);     
+      str.println("rf_fail,0");      // RF recieved so no failure
+      str.print("jarduino");
+      str.print(jrdnData.jarduino);
+      str.print("jardinera1,");          
+      str.println(jrdnData.jardinera1);
+      str.print("jardinera2,");          
+      str.println(jrdnData.jardinera2);
       str.print("temperature,");        
       str.println(jrdnData.temperature);
       str.print("humidity,");           
       str.println(jrdnData.humidity);
-      str.print("soilMoisture,");       
-      str.println(jrdnData.soilMoisture);
+      str.print("soilMoisture1,");       
+      str.println(jrdnData.soilMoisture1);
+      str.print("soilMoisture2,");       
+      str.println(jrdnData.soilMoisture2);
       str.print("sunlight,");           
       str.println(jrdnData.sunlight);
-      str.print("angle,");              
-      str.println(jrdnData.angle);
       data_ready = 1;                                                // data is ready
       rf_error = 0;
     }
@@ -267,22 +291,27 @@ void loop () {
 
     Serial.println("CSV data"); 
     Serial.println(str.buf); // print to serial csv string
+    ethernet_requests ++;
 
-  if (jrdnData.jardinera==1){                                             // Asocio el feed y la key segun la jardinera
-    ethernet_requests ++;
+    //This super unelegant solution was put in place to prevent SRAM exhaustion by bringing the strings from Flash memory. 
+    if (jrdnData.jarduino==1){                                             // Asocio el feed y la key segun la jardinera
     ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
-    data_ready =0;
-    } 
-    else if (jrdnData.jardinera==2){                                             // Asocio el feed y la key segun la jardinera
-    ethernet_requests ++;
+    } else if (jrdnData.jarduino==2){                                             
     ether.httpPost(PSTR(FEED2), website, PSTR(APIKEY2), str.buf, my_callback);
-    data_ready =0;
-    } else {
-     ethernet_requests ++;
-    ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
-    data_ready =0;
-      //Serial.println("Wow, ese nodo no esta registrado");
+    } /*else if (jrdnData.jarduino==3){                                             
+    ether.httpPost(PSTR(FEED3), website, PSTR(APIKEY3), str.buf, my_callback);
+    } else if (jrdnData.jarduino==4){                                             
+    ether.httpPost(PSTR(FEED4), website, PSTR(APIKEY4), str.buf, my_callback);
+    } else if (jrdnData.jarduino==5){                                             
+    ether.httpPost(PSTR(FEED5), website, PSTR(APIKEY5), str.buf, my_callback);
+    } else if (jrdnData.jarduino==6){                                             
+    ether.httpPost(PSTR(FEED6), website, PSTR(APIKEY6), str.buf, my_callback);
+    } */else {
+    str.reset();
+    Serial.println("Wow, unregistered node");
     }
+
+    data_ready =0;
 
     /* Example of posting to COSM
     ethernet_requests ++;
