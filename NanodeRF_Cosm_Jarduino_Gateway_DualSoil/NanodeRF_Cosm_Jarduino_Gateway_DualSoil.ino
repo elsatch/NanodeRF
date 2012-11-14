@@ -1,35 +1,65 @@
 /*                          _                                                      _      
- ____.                .___    .__               
- |    |____ _______  __| _/_ __|__| ____   ____  
- |    \__  \\_  __ \/ __ |  |  \  |/    \ /  _ \ 
+      ____.                .___    .__               
+     |    |____ _______  __| _/_ __|__| ____   ____  
+     |    \__  \\_  __ \/ __ |  |  \  |/    \ /  _ \ 
  /\__|    |/ __ \|  | \/ /_/ |  |  /  |   |  (  <_> )
  \________(____  /__|  \____ |____/|__|___|  /\____/ 
- \/           \/             \/        
+  \/           \/           \/        
  */
 
 //--------------------------------------------------------------------------------------
+
 // Relay's data recieved by Jarduino Client up to COSM
-// Decodes reply from server to set software real time clock
 // Looks for 'ok' reply from http request to verify data reached COSM
 
-// Jarduino: A Nanode RF plus a custom shield, called Jarduino because it monitors gardens. Each unit monitors 2 areas for soil moisture (jardinera)
+// Jarduino: A Nanode RF plus a custom shield, called Jarduino because it monitors gardens. Each unit monitors 2 areas for soil moisture
 // All the other parameters are common for both areas. There are 6 sensor units deployed plus a gateway at the moment. (Nov. 2012)
-
+// Developed for Jarduino Workshop at CICUS (Sevilla University) into the Digital Orchard series by Cesar Garcia Saez (@elsatch)
+// Workshop contents developed by Sara Alvarellos, Cesar Garcia and Ricardo Merino. More info at: http://www.cicuslab.com
+// 
 // Based on the incredible work of Trystan Lea and Glyn Hudson for OpenEnergyMonitor.org project
 // Modified for COSM by Roger James
 // Adapted to serve as a gateway for multiple NanodesRF/feeds for Jarduino Workshop at CICUS (Sevilla) by Cesar Garcia Saez
 // Big thanks to everyone involved!!
 // Licenced under GNU GPL V3
-//http://openenergymonitor.org/emon/license
+// http://openenergymonitor.org/emon/license
 
-// EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
-// JeeLib Library by Jean-Claude Wippler
+// EtherCard Library by Jean-Claude Wippler and Andrew Lindsay - Download at http://github.com/jcw/ethercard
+// JeeLib Library by Jean-Claude Wippler - Download at: https://github.com/jcw/jeelib
+//
+
+/* Final deployment setup:
+|----+----+----+-----------|
+|  1 |  2 |  3 | macetas   |
+|----+----+----+-----------|
+| J1 | J2 | J3 | jarduinos |
+|----+----+----+-----------|
+|  4 |  5 |  6 | macetas   |
+|  7 |  8 |  9 | macetas   |
+|----+----+----+-----------|
+| J4 | J5 | J6 | jarduinos |
+|----+----+----+-----------|
+| 10 | 11 | 11 | macetas   |
+|----+----+----+-----------|
+
+|----------+----------+----------|
+| Jarduino | Maceta_A | Maceta_B |
+|----------+----------+----------|
+| J1       |        1 |        4 |
+| J2       |        2 |        5 |
+| J3       |        3 |        6 |
+| J4       |        7 |       10 |
+| J5       |        8 |       11 |
+| J6       |        9 |       12 |
+|----------+----------+----------|
+*/
+
 //--------------------------------------------------------------------------------------
 
 #define DEBUG     //comment out to disable serial printing to increase long term stability 
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
 
-#include <JeeLib.h>	     //https://github.com/jcw/jeelib
+#include <JeeLib.h>	     
 #include <avr/wdt.h>
 
 #define MYNODE 1            
@@ -72,9 +102,9 @@
 typedef struct 
 { 
   int jarduino;   
-  int jardinera_A;
+  int maceta_A;
   int soilMoisture_A; 
-  int jardinera_B;
+  int maceta_B;
   int soilMoisture_B;
   float temperature;
   float humidity; 
@@ -234,10 +264,10 @@ void loop () {
       Serial.println();                                              // print Jarduino Node 1 data to serial          
       Serial.print("Jarduino Number");
       Serial.println(jrdnData.jarduino);
-      Serial.print("Monitors jardinera numbers: ");
-      Serial.print(jrdnData.jardinera_A); 
+      Serial.print("Monitors macetas numbered: ");
+      Serial.print(jrdnData.maceta_A); 
       Serial.print(" and "); 
-      Serial.print(jrdnData.jardinera_B); 
+      Serial.print(jrdnData.maceta_B); 
       Serial.println();                                              // print Jarduino Node 1 data to serial          
 
       last_rf = millis();                                            // reset lastRF timer
@@ -250,12 +280,12 @@ void loop () {
       str.println("rf_fail,0");      // RF recieved so no failure
       str.print("jarduino");
       str.print(jrdnData.jarduino);
-      str.print("jardinera_A,");          
-      str.println(jrdnData.jardinera_A);
+      str.print("maceta_A,");          
+      str.println(jrdnData.maceta_A);
       str.print("soilMoisture_A,");       
       str.println(jrdnData.soilMoisture_A);
-      str.print("jardinera_B,");          
-      str.println(jrdnData.jardinera_B);
+      str.print("maceta_B,");          
+      str.println(jrdnData.maceta_B);
       str.print("soilMoisture_B,");       
       str.println(jrdnData.soilMoisture_B);
       str.print("temperature,");        
@@ -295,7 +325,7 @@ void loop () {
     Serial.println(str.buf); // print to serial csv string
     ethernet_requests ++;
     //This super unelegant solution was put in place to prevent SRAM exhaustion by bringing the strings from Flash memory. 
-    if (jrdnData.jarduino==1){                                             // Asocio el feed y la key segun la jardinera
+    if (jrdnData.jarduino==1){                                             // Asocio el feed y la key segun el num jarduino
       ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
     } 
     else if (jrdnData.jarduino==2){                                             

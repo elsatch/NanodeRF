@@ -1,33 +1,60 @@
-/***************************************************************************
- * Script to test wireless communication with the RFM12B tranceiver module
- * with an Arduino or Nanode board.
- *
- * Transmitter - Sends an incrementing number and flashes the LED every second.
- * Puts the ATMega and RFM12B to sleep between sends in case it's running on
- * battery.
- *
- * Ian Chilton <ian@chilton.me.uk>
- * December 2011
- *
- * Requires Arduino version 0022. v1.0 was just released a few days ago so
- * i'll need to update this to work with 1.0.
- *
- * Requires the Ports and RF12 libraries from Jeelabs in your libraries directory:
- *
- * http://jeelabs.org/pub/snapshots/Ports.zip
- * http://jeelabs.org/pub/snapshots/RF12.zip
- *
- * Information on the RF12 library - http://jeelabs.net/projects/11/wiki/RF12
- *
- * Original URL: https://github.com/ichilton/nanode-code/blob/master/test_rfm12b/test_tx/test_tx.pde
- *
- * Jarduino Client expanded to include:
- * -DHT22 Sensor
- * -soilMoisture
- * -sunlight measured via an LDR
- * -servo control capabilities
- * Upload to Cosm is handled by the Nanode Gateway code with hardcoded feed/apikey for each node
- ***********************************************************************************************/
+/*                          _                                                      _      
+      ____.                .___    .__               
+     |    |____ _______  __| _/_ __|__| ____   ____  
+     |    \__  \\_  __ \/ __ |  |  \  |/    \ /  _ \ 
+ /\__|    |/ __ \|  | \/ /_/ |  |  /  |   |  (  <_> )
+ \________(____  /__|  \____ |____/|__|___|  /\____/ 
+  \/           \/           \/        
+ */
+
+//---------------------------------------------------------------------------
+// Jarduino: A Nanode RF plus a custom shield, called Jarduino because it monitors gardens. Each unit monitors 2 areas for soil moisture
+// All the other parameters are common for both areas. There are 6 sensor units deployed plus a gateway at the moment. (Nov. 2012)
+// Developed for Jarduino Workshop at CICUS (Sevilla University) into the Digital Orchard series by Cesar Garcia Saez (@elsatch)
+// Workshop contents developed by Sara Alvarellos, Cesar Garcia and Ricardo Merino. More info at: www.cicuslab.com
+// 
+// Jarduino Client expanded to include:
+// -DHT22 Sensor
+// -2xsoilMoisture
+// -Sunlight measured via LDR
+// Upload to Cosm is handled by the Nanode Gateway code with hardcoded feed/apikey for each node
+//
+// Based on RF12B test_tx code by Ian Chilton <ian@chilton.me.uk> 
+// Original URL: https://github.com/ichilton/nanode-code/blob/master/test_rfm12b/test_tx/test_tx.pde
+//
+// JeeLib Library by Jean-Claude Wippler - Download at: https://github.com/jcw/jeelib
+//
+// Big thanks to everyone involved!!
+// Licenced under GNU GPL V3
+//
+/* Final deployment setup:
+|----+----+----+-----------|
+|  1 |  2 |  3 | macetas   |
+|----+----+----+-----------|
+| J1 | J2 | J3 | jarduinos |
+|----+----+----+-----------|
+|  4 |  5 |  6 | macetas   |
+|  7 |  8 |  9 | macetas   |
+|----+----+----+-----------|
+| J4 | J5 | J6 | jarduinos |
+|----+----+----+-----------|
+| 10 | 11 | 11 | macetas   |
+|----+----+----+-----------|
+
+|----------+----------+----------|
+| Jarduino | Maceta_A | Maceta_B |
+|----------+----------+----------|
+| J1       |        1 |        4 |
+| J2       |        2 |        5 |
+| J3       |        3 |        6 |
+| J4       |        7 |       10 |
+| J5       |        8 |       11 |
+| J6       |        9 |       12 |
+|----------+----------+----------|
+*/
+
+
+ 
 // RF12b Requirements
 #include <JeeLib.h>
 
@@ -42,9 +69,9 @@ ISR(WDT_vect) {
 // Send a single unsigned long
 typedef struct {
    int jarduino;   
-  int jardinera_A;
+  int maceta_A;
   int soilMoisture_A; 
-  int jardinera_B;
+  int maceta_B;
   int soilMoisture_B;
   float temperature;
   float humidity; 
@@ -95,12 +122,12 @@ int ldrPin = A0;
 
 //Dummy values
 int jrdn;  //Jarduino ID
-int jardi_A; //Jardinera 1 connected to Jarduino ID
-int jardi_B; //Jardinera 2 connected to Jarduino ID
+int mct_A; //Maceta A connected to Jarduino ID=jrdn
+int soil_A;
+int mct_B; //Maceta B connected to Jarduino ID=jrdn
+int soil_B;
 float temp;
 float hum; 
-int soil_A;
-int soil_B;
 int sun;
 int node_id;
 
@@ -126,8 +153,8 @@ void setup()
   
   //Select here which garden are we monitoring (1-12)
   jrdn=1;
-  jardi_A=1;
-  jardi_B=2;
+  mct_A=1;
+  mct_B=4;
   //  temp = 37.2;
   //  hum = 20; 
   //  soil = 40; 
@@ -177,8 +204,8 @@ void loop()
   delay(5);
 
   // Jardinera_ID
-  jrdnData.jardinera_A=jardi_A;
-  jrdnData.jardinera_B=jardi_B;
+  jrdnData.maceta_A=mct_A;
+  jrdnData.maceta_B=mct_B;
 
   
   //DHT22 Code
