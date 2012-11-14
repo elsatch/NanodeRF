@@ -1,10 +1,10 @@
 /*                          _                                                      _      
-    ____.                .___    .__               
-    |    |____ _______  __| _/_ __|__| ____   ____  
-    |    \__  \\_  __ \/ __ |  |  \  |/    \ /  _ \ 
-/\__|    |/ __ \|  | \/ /_/ |  |  /  |   |  (  <_> )
-\________(____  /__|  \____ |____/|__|___|  /\____/ 
-              \/           \/             \/        
+ ____.                .___    .__               
+ |    |____ _______  __| _/_ __|__| ____   ____  
+ |    \__  \\_  __ \/ __ |  |  \  |/    \ /  _ \ 
+ /\__|    |/ __ \|  | \/ /_/ |  |  /  |   |  (  <_> )
+ \________(____  /__|  \____ |____/|__|___|  /\____/ 
+ \/           \/             \/        
  */
 
 //--------------------------------------------------------------------------------------
@@ -52,33 +52,35 @@
 #define APIKEY2 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g"
 
 /* To be filled with real data
-#define FEED3  "/v2/feeds/80020.csv?_method=put"
-#define APIKEY3 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
-
-#define FEED4  "/v2/feeds/80021.csv?_method=put"
-#define APIKEY4 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
-
-#define FEED5  "/v2/feeds/80020.csv?_method=put"
-#define APIKEY5 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
-
-#define FEED6  "/v2/feeds/80021.csv?_method=put"
-#define APIKEY6 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
-*/
+ #define FEED3  "/v2/feeds/80020.csv?_method=put"
+ #define APIKEY3 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
+ 
+ #define FEED4  "/v2/feeds/80021.csv?_method=put"
+ #define APIKEY4 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
+ 
+ #define FEED5  "/v2/feeds/80020.csv?_method=put"
+ #define APIKEY5 "X-ApiKey:5k2WzS4CV48r5YRnDJMAYIvgttySAKxIazgwMy9tUFRDST0g" 
+ 
+ #define FEED6  "/v2/feeds/80021.csv?_method=put"
+ #define APIKEY6 "X-ApiKey:j_loGZky3gfZLO7cHbSD6Mn-24eSAKxFWFNDeUF1em9qZz0g" 
+ */
 
 //---------------------------------------------------
 // Data structures for transfering data between units
 //---------------------------------------------------
 
 typedef struct 
-{ int jarduino;   
-  int jardinera1; 
-  int jardinera2;
+{ 
+  int jarduino;   
+  int jardinera_A;
+  int soilMoisture_A; 
+  int jardinera_B;
+  int soilMoisture_B;
   float temperature;
   float humidity; 
-  int soilMoisture1;
-  int soilMoisture2; 
   int sunlight;
-} PayloadJrdn;
+} 
+PayloadJrdn;
 
 PayloadJrdn jrdnData;
 
@@ -169,35 +171,35 @@ void setup () {
 
   //if (ether.begin(sizeof Ethernet::buffer, mymac, 10) == 0) {	//for use with Open Kontrol Gateway 
   if (ether.begin(sizeof Ethernet::buffer, mymac) == 0) {	//for use with NanodeRF
-      Serial.println( "Failed to access Ethernet controller");
-      ethernet_error = 1;  
-    }
+    Serial.println( "Failed to access Ethernet controller");
+    ethernet_error = 1;  
+  }
 
-    dhcp_status = 0;
-    dns_status = 0;
-    ethernet_requests = 0;
-    ethernet_error=0;
-    rf_error=0;
+  dhcp_status = 0;
+  dns_status = 0;
+  ethernet_requests = 0;
+  ethernet_error=0;
+  rf_error=0;
 
-    //For use with the modified JeeLib library to enable setting RFM12B SPI CS pin in the sketch.
-    //rf12_set_cs(9);  //Open Kontrol Gateway	
-    //rf12_set_cs(10); //emonTx, emonGLCD, NanodeRF, JeeNode
+  //For use with the modified JeeLib library to enable setting RFM12B SPI CS pin in the sketch.
+  //rf12_set_cs(9);  //Open Kontrol Gateway	
+  //rf12_set_cs(10); //emonTx, emonGLCD, NanodeRF, JeeNode
 
-    rf12_initialize(MYNODE, freq, group);
-    Serial.println("Radio inicializada");
-    Serial.print("Nodo ");
-    Serial.print(MYNODE);
-    Serial.print(", Frecuencia ");
-    Serial.print(freq);
-    Serial.print(" , Grupo ");
-    Serial.println(group);
-    
-    last_rf = millis()-40000;                                       // setting lastRF back 40s is useful as it forces the ethernet code to run straight away
+  rf12_initialize(MYNODE, freq, group);
+  Serial.println("Radio inicializada");
+  Serial.print("Nodo ");
+  Serial.print(MYNODE);
+  Serial.print(", Frecuencia ");
+  Serial.print(freq);
+  Serial.print(" , Grupo ");
+  Serial.println(group);
 
-    digitalWrite(greenLED,HIGH);                                    // Green LED off - indicate that setup has finished 
+  last_rf = millis()-40000;                                       // setting lastRF back 40s is useful as it forces the ethernet code to run straight away
+
+  digitalWrite(greenLED,HIGH);                                    // Green LED off - indicate that setup has finished 
 
 #ifdef UNO
-    wdt_enable(WDTO_8S); 
+  wdt_enable(WDTO_8S); 
 #endif;
 
 }
@@ -233,11 +235,11 @@ void loop () {
       Serial.print("Jarduino Number");
       Serial.println(jrdnData.jarduino);
       Serial.print("Monitors jardinera numbers: ");
-      Serial.print(jrdnData.jardinera1); 
+      Serial.print(jrdnData.jardinera_A); 
       Serial.print(" and "); 
-      Serial.print(jrdnData.jardinera2); 
+      Serial.print(jrdnData.jardinera_B); 
       Serial.println();                                              // print Jarduino Node 1 data to serial          
-      
+
       last_rf = millis();                                            // reset lastRF timer
 
       delay(50);                                                     // make sure serial printing finished
@@ -248,18 +250,18 @@ void loop () {
       str.println("rf_fail,0");      // RF recieved so no failure
       str.print("jarduino");
       str.print(jrdnData.jarduino);
-      str.print("jardinera1,");          
-      str.println(jrdnData.jardinera1);
-      str.print("jardinera2,");          
-      str.println(jrdnData.jardinera2);
+      str.print("jardinera_A,");          
+      str.println(jrdnData.jardinera_A);
+      str.print("soilMoisture_A,");       
+      str.println(jrdnData.soilMoisture_A);
+      str.print("jardinera_B,");          
+      str.println(jrdnData.jardinera_B);
+      str.print("soilMoisture_B,");       
+      str.println(jrdnData.soilMoisture_B);
       str.print("temperature,");        
       str.println(jrdnData.temperature);
       str.print("humidity,");           
       str.println(jrdnData.humidity);
-      str.print("soilMoisture1,");       
-      str.println(jrdnData.soilMoisture1);
-      str.print("soilMoisture2,");       
-      str.println(jrdnData.soilMoisture2);
       str.print("sunlight,");           
       str.println(jrdnData.sunlight);
       data_ready = 1;                                                // data is ready
@@ -292,34 +294,35 @@ void loop () {
     Serial.println("CSV data"); 
     Serial.println(str.buf); // print to serial csv string
     ethernet_requests ++;
-
     //This super unelegant solution was put in place to prevent SRAM exhaustion by bringing the strings from Flash memory. 
     if (jrdnData.jarduino==1){                                             // Asocio el feed y la key segun la jardinera
-    ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
-    } else if (jrdnData.jarduino==2){                                             
-    ether.httpPost(PSTR(FEED2), website, PSTR(APIKEY2), str.buf, my_callback);
+      ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
+    } 
+    else if (jrdnData.jarduino==2){                                             
+      ether.httpPost(PSTR(FEED2), website, PSTR(APIKEY2), str.buf, my_callback);
     } /*else if (jrdnData.jarduino==3){                                             
-    ether.httpPost(PSTR(FEED3), website, PSTR(APIKEY3), str.buf, my_callback);
-    } else if (jrdnData.jarduino==4){                                             
-    ether.httpPost(PSTR(FEED4), website, PSTR(APIKEY4), str.buf, my_callback);
-    } else if (jrdnData.jarduino==5){                                             
-    ether.httpPost(PSTR(FEED5), website, PSTR(APIKEY5), str.buf, my_callback);
-    } else if (jrdnData.jarduino==6){                                             
-    ether.httpPost(PSTR(FEED6), website, PSTR(APIKEY6), str.buf, my_callback);
-    } */else {
-    str.reset();
-    Serial.println("Wow, unregistered node");
+     ether.httpPost(PSTR(FEED3), website, PSTR(APIKEY3), str.buf, my_callback);
+     } else if (jrdnData.jarduino==4){                                             
+     ether.httpPost(PSTR(FEED4), website, PSTR(APIKEY4), str.buf, my_callback);
+     } else if (jrdnData.jarduino==5){                                             
+     ether.httpPost(PSTR(FEED5), website, PSTR(APIKEY5), str.buf, my_callback);
+     } else if (jrdnData.jarduino==6){                                             
+     ether.httpPost(PSTR(FEED6), website, PSTR(APIKEY6), str.buf, my_callback);
+     } */
+    else {
+      str.reset();
+      Serial.println("Wow, unregistered node");
     }
 
     data_ready =0;
 
     /* Example of posting to COSM
-    ethernet_requests ++;
-    //ether.httpPost(feed, website, apikey, str.buf, my_callback);
-    Serial.println(feed);
-    Serial.println(apikey);
-    ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
-    data_ready =0; */
+     ethernet_requests ++;
+     //ether.httpPost(feed, website, apikey, str.buf, my_callback);
+     Serial.println(feed);
+     Serial.println(apikey);
+     ether.httpPost(PSTR(FEED1), website, PSTR(APIKEY1), str.buf, my_callback);
+     data_ready =0; */
   }
 
   if (ethernet_requests > 10) delay(10000); // Reset the nanode if more than 10 request attempts have been tried without a reply
@@ -343,47 +346,48 @@ static void my_callback (byte status, word off, word len) {
     get_header_line(2,off);      // Get the date and time from the header
     Serial.print("ok recv from server | ");    // Print out the date and time
     Serial.println(line_buf);    // Print out the date and time
-/*
+    /*
     // Decode date time string to get integers for hour, min, sec, day
-    // We just search for the characters and hope they are in the right place
-    char val[1];
-    val[0] = line_buf[23]; 
-    val[1] = line_buf[24];
-    int hour = atoi(val);
-    val[0] = line_buf[26]; 
-    val[1] = line_buf[27];
-    int minute = atoi(val);
-    val[0] = line_buf[29]; 
-    val[1] = line_buf[30];
-    int second = atoi(val);
-    val[0] = line_buf[11]; 
-    val[1] = line_buf[12];
-    int day = atoi(val);
+     // We just search for the characters and hope they are in the right place
+     char val[1];
+     val[0] = line_buf[23]; 
+     val[1] = line_buf[24];
+     int hour = atoi(val);
+     val[0] = line_buf[26]; 
+     val[1] = line_buf[27];
+     int minute = atoi(val);
+     val[0] = line_buf[29]; 
+     val[1] = line_buf[30];
+     int second = atoi(val);
+     val[0] = line_buf[11]; 
+     val[1] = line_buf[12];
+     int day = atoi(val);
+     
+     // Don't send all zeros, happens when server failes to returns reponce to avoide GLCD getting mistakenly set to midnight
+     if (hour>0 || minute>0 || second>0) 
+     {  
+     delay(100);
+     
+     char data[] = {
+     't',hour,minute,second                        };
+     int i = 0; 
+     while (!rf12_canSend() && i<10) {
+     rf12_recvDone(); 
+     i++;
+     }
+     rf12_sendStart(0, data, sizeof data);
+     rf12_sendWait(0);
+     
+     Serial.println("time sent to emonGLCD"); 
+     }
+     */
 
-    // Don't send all zeros, happens when server failes to returns reponce to avoide GLCD getting mistakenly set to midnight
-    if (hour>0 || minute>0 || second>0) 
-    {  
-      delay(100);
-
-      char data[] = {
-        't',hour,minute,second                        };
-      int i = 0; 
-      while (!rf12_canSend() && i<10) {
-        rf12_recvDone(); 
-        i++;
-      }
-      rf12_sendStart(0, data, sizeof data);
-      rf12_sendWait(0);
-
-      Serial.println("time sent to emonGLCD"); 
-    }
-      */
-    
 
     ethernet_requests = 0; 
     ethernet_error = 0;
   }
 }
+
 
 
 

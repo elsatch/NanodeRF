@@ -41,13 +41,13 @@ ISR(WDT_vect) {
 
 // Send a single unsigned long
 typedef struct {
-  int jarduino;
-  int jardinera1;
-  int jardinera2; 
+   int jarduino;   
+  int jardinera_A;
+  int soilMoisture_A; 
+  int jardinera_B;
+  int soilMoisture_B;
   float temperature;
   float humidity; 
-  int soilMoisture1; 
-  int soilMoisture2;
   int sunlight;
 } PayloadJrdn;
 
@@ -70,24 +70,24 @@ DHT dht(DHTPIN, DHTTYPE);
 // A1 is used to measure soil resistance to current. The more humid the less resistance
 // We tried with Digital 3 & 4, but Ethernet controller doesn't initialize properly if selected, so we swtiched to analog pins
 //Pin Numbers Jardinera 1
-int moisture_input1=1; //A1
-int divider_top1=A2; 
-int divider_bottom1=A3;
+int moisture_input_A=1; //A1
+int divider_top_A=A2; 
+int divider_bottom_A=A3;
 
 //Pin Numbers Jardinera2
-int moisture_input2=4; //A4
-int divider_top2=A5;
-int divider_bottom2=3; // Don't have analogs enough, and as I'm using only to send current, digital is ok
+int moisture_input_B=4; //A4
+int divider_top_B=A5;
+int divider_bottom_B=3; // Don't have analogs enough, and as I'm using only to send current, digital is ok
 
 //Aux Jardinera 1
-int moisture_result1=0; // Resultado de la lectura del A0
-int moisture_percentage1=0; // Humedad en porcentaje respecto a los maximos del sensor
+int moisture_result_A=0; // Resultado de la lectura del A0
+int moisture_percentage_A=0; // Humedad en porcentaje respecto a los maximos del sensor
 // End of Soil Moisture Sensor 
 // TODO: Review why printing right behind pinMode(divider_bottom, LOW) prints crap on serial port
 
 //Aux Jardinera 2
-int moisture_result2=0; // Resultado de la lectura del A0
-int moisture_percentage2=0; // Humedad en porcentaje respecto a los maximos del sensor
+int moisture_result_B=0; // Resultado de la lectura del A0
+int moisture_percentage_B=0; // Humedad en porcentaje respecto a los maximos del sensor
 
 // LDR Code
 int ldrPin = A0;
@@ -95,14 +95,13 @@ int ldrPin = A0;
 
 //Dummy values
 int jrdn;  //Jarduino ID
-int jardi1; //Jardinera 1 connected to Jarduino ID
-int jardi2; //Jardinera 2 connected to Jarduino ID
+int jardi_A; //Jardinera 1 connected to Jarduino ID
+int jardi_B; //Jardinera 2 connected to Jarduino ID
 float temp;
 float hum; 
-int soil1;
-int soil2;
+int soil_A;
+int soil_B;
 int sun;
-int ang;
 int node_id;
 
 void setup()
@@ -118,21 +117,22 @@ void setup()
   dht.begin();
   
   // Soil pins
-  pinMode(divider_top1,OUTPUT);
-  pinMode(divider_bottom1,OUTPUT);
+  pinMode(divider_top_A,OUTPUT);
+  pinMode(divider_bottom_A,OUTPUT);
   
   // Soil 2 pins
-  pinMode(divider_top2, OUTPUT);
-  pinMode(divider_bottom2, OUTPUT);
+  pinMode(divider_top_B, OUTPUT);
+  pinMode(divider_bottom_B, OUTPUT);
   
   //Select here which garden are we monitoring (1-12)
-  jardi1=1;
-  jardi2=2;
+  jrdn=1;
+  jardi_A=1;
+  jardi_B=2;
   //  temp = 37.2;
   //  hum = 20; 
   //  soil = 40; 
   //  sun = 50;
-  node_id=jardi1+10;
+  node_id=jrdn+10;
 
   // Initialize RFM12B as an 868Mhz module and Node 11 + Group 1:
   // Node number = Jardinera number + 10; 1 is reserved for the NanodeRF Gateway  
@@ -177,8 +177,8 @@ void loop()
   delay(5);
 
   // Jardinera_ID
-  jrdnData.jardinera1=jardi1;
-  jrdnData.jardinera2=jardi2;
+  jrdnData.jardinera_A=jardi_A;
+  jrdnData.jardinera_B=jardi_B;
 
   
   //DHT22 Code
@@ -197,15 +197,15 @@ void loop()
   // End of DHT22 Code
   
   // Soil moisture 1 measurement code
-  moisture_result1=ReadSoilMoisture1();
-  moisture_percentage1=map(moisture_result1,1024,0,0,100);
-  jrdnData.soilMoisture1=moisture_percentage1;
+  moisture_result_A=ReadSoilMoistureA();
+  moisture_percentage_A=map(moisture_result_A,1024,0,0,100);
+  jrdnData.soilMoisture_A=moisture_percentage_A;
   // End of Soil moisture 1 measurement code 
   
   // Soil moisture 2 measurement code
-  moisture_result2=ReadSoilMoisture2();
-  moisture_percentage2=map(moisture_result2,1024,0,0,100);
-  jrdnData.soilMoisture2=moisture_percentage2;
+  moisture_result_B=ReadSoilMoistureB();
+  moisture_percentage_B=map(moisture_result_B,1024,0,0,100);
+  jrdnData.soilMoisture_B=moisture_percentage_B;
   // End of Soil moisture 2 measurement code 
 
 
@@ -225,49 +225,49 @@ void loop()
   Serial.println("Sent payload");
 }
 
-int ReadSoilMoisture1(){
-  int reading1;
+int ReadSoilMoistureA(){
+  int reading_A;
   // drive a current through the divider in one direction
-  digitalWrite(divider_top1,HIGH);
-  digitalWrite(divider_bottom1,LOW);
+  digitalWrite(divider_top_A,HIGH);
+  digitalWrite(divider_bottom_A,LOW);
 
   // wait a moment for capacitance effects to settle
   delay(1000);
 
   // take a reading
-  reading1=analogRead(moisture_input1);
+  reading_A=analogRead(moisture_input_A);
   // reverse the current
-  digitalWrite(divider_top1,LOW);
-  digitalWrite(divider_bottom1,HIGH);
+  digitalWrite(divider_top_A,LOW);
+  digitalWrite(divider_bottom_B,HIGH);
 
   // give as much time in 'revers'e as in 'forward'
   delay(1000);
 
   // stop the current
-  digitalWrite(divider_bottom1,LOW);
-  return reading1;
+  digitalWrite(divider_bottom_A,LOW);
+  return reading_A;
 }
 
-int ReadSoilMoisture2(){
-  int reading2;
+int ReadSoilMoistureB(){
+  int reading_B;
   // drive a current through the divider in one direction
-  digitalWrite(divider_top2,HIGH);
-  digitalWrite(divider_bottom2,LOW);
+  digitalWrite(divider_top_B,HIGH);
+  digitalWrite(divider_bottom_B,LOW);
 
   // wait a moment for capacitance effects to settle
   delay(1000);
 
   // take a reading
-  reading2=analogRead(moisture_input2);
+  reading_B=analogRead(moisture_input_B);
   // reverse the current
-  digitalWrite(divider_top2,LOW);
-  digitalWrite(divider_bottom2,HIGH);
+  digitalWrite(divider_top_B,LOW);
+  digitalWrite(divider_bottom_B,HIGH);
 
   // give as much time in 'revers'e as in 'forward'
   delay(1000);
 
   // stop the current
-  digitalWrite(divider_bottom2,LOW);
-  return reading2;
+  digitalWrite(divider_bottom_B,LOW);
+  return reading_B;
 }
 
