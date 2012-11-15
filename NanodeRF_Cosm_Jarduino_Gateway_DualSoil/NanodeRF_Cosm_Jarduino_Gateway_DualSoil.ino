@@ -176,8 +176,7 @@ int ethernet_requests = 0;                // count ethernet requests without rep
 
 int dhcp_status = 0;
 int dns_status = 0;
-int emonglcd_rx = 0;                      // Used to indicate that emonglcd data is available
-int data_ready=0;                         // Used to signal that emontx data is ready to be sent
+int data_ready=0;                         // Used to signal that Jarduino data is ready to be sent
 unsigned long last_rf;                    // Used to check for regular emontx data - otherwise error
 
 char line_buf[50];                        // Used to store line of http reply header
@@ -278,7 +277,7 @@ void loop () {
 
       str.reset();                                                   // Reset csv string      
       str.println("rf_fail,0");      // RF recieved so no failure
-      str.print("jarduino");
+      str.print("jarduino,");
       str.print(jrdnData.jarduino);
       str.print("maceta_A,");          
       str.println(jrdnData.maceta_A);

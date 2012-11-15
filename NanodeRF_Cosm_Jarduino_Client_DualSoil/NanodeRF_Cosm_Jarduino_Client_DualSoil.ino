@@ -68,7 +68,7 @@ ISR(WDT_vect) {
 
 // Send a single unsigned long
 typedef struct {
-   int jarduino;   
+  int jarduino;   
   int maceta_A;
   int soilMoisture_A; 
   int maceta_B;
@@ -106,14 +106,14 @@ int moisture_input_B=4; //A4
 int divider_top_B=A5;
 int divider_bottom_B=3; // Don't have analogs enough, and as I'm using only to send current, digital is ok
 
-//Aux Jardinera 1
-int moisture_result_A=0; // Resultado de la lectura del A0
+//Aux Maceta A
+int moisture_result_A=0; // Resultado de la lectura del A1
 int moisture_percentage_A=0; // Humedad en porcentaje respecto a los maximos del sensor
 // End of Soil Moisture Sensor 
 // TODO: Review why printing right behind pinMode(divider_bottom, LOW) prints crap on serial port
 
-//Aux Jardinera 2
-int moisture_result_B=0; // Resultado de la lectura del A0
+//Aux Maceta B
+int moisture_result_B=0; // Resultado de la lectura del A4
 int moisture_percentage_B=0; // Humedad en porcentaje respecto a los maximos del sensor
 
 // LDR Code
@@ -178,7 +178,7 @@ void setup()
 void loop()
 {
   // LED OFF:
-  digitalWrite(5, LOW);
+  digitalWrite(5, HIGH);
 
   Serial.println("Going to sleep...");
 
@@ -197,7 +197,7 @@ void loop()
   rf12_sleep(RF12_WAKEUP);
 
   // LED ON:
-  digitalWrite(5, HIGH);
+  digitalWrite(5, LOW);
 
   Serial.println("Woke up...");
   Serial.flush();
