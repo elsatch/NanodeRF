@@ -159,7 +159,10 @@ void setup()
   //  hum = 20; 
   //  soil = 40; 
   //  sun = 50;
+  //Jarduino ID setup
+  jrdnData.jarduino=jrdn;
   node_id=jrdn+10;
+  
 
   // Initialize RFM12B as an 868Mhz module and Node 11 + Group 1:
   // Node number = Jardinera number + 10; 1 is reserved for the NanodeRF Gateway  
@@ -202,7 +205,8 @@ void loop()
   Serial.println("Woke up...");
   Serial.flush();
   delay(5);
-
+  //Jarduino
+  jrdnData.jarduino=jrdn;
   // Jardinera_ID
   jrdnData.maceta_A=mct_A;
   jrdnData.maceta_B=mct_B;
@@ -219,25 +223,38 @@ void loop()
   else {
     jrdnData.temperature=temp; //Get temp from DHT22
     jrdnData.humidity=hum;
-    Serial.println("Read from DHT");    
+    Serial.println("Read from DHT");
+    Serial.print("I measured temperature and the value is");
+    Serial.println(temp);
+    Serial.print("I measured humidity and the value is");
+    Serial.println(hum);
+  
+      
   }
   // End of DHT22 Code
   
   // Soil moisture 1 measurement code
+  Serial.println("I'm about to measure moisture");
   moisture_result_A=ReadSoilMoistureA();
   moisture_percentage_A=map(moisture_result_A,1024,0,0,100);
+  Serial.print("I measured moisture A and the value is");
+  Serial.println(moisture_result_A);
   jrdnData.soilMoisture_A=moisture_percentage_A;
   // End of Soil moisture 1 measurement code 
   
   // Soil moisture 2 measurement code
   moisture_result_B=ReadSoilMoistureB();
   moisture_percentage_B=map(moisture_result_B,1024,0,0,100);
+  Serial.print("I measured moisture B and the value is");
+  Serial.println(moisture_result_B);
   jrdnData.soilMoisture_B=moisture_percentage_B;
   // End of Soil moisture 2 measurement code 
 
 
   //LDR Code
   sun=analogRead(ldrPin);
+  Serial.print("I measured sunlight and the value is");
+  Serial.println(sun);
   jrdnData.sunlight=sun;
   //End of LDR Code
   
