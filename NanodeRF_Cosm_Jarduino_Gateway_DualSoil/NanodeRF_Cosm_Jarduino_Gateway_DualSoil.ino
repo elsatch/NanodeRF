@@ -278,7 +278,7 @@ void loop () {
       str.reset();                                                   // Reset csv string      
       str.println("rf_fail,0");      // RF recieved so no failure
       str.print("jarduino,");
-      str.print(jrdnData.jarduino);
+      str.println(jrdnData.jarduino);
       str.print("maceta_A,");          
       str.println(jrdnData.maceta_A);
       str.print("soilMoisture_A,");       
